@@ -1,124 +1,142 @@
-import Image from 'next/image'
-import { Inter } from 'next/font/google'
 
-const inter = Inter({ subsets: ['latin'] })
+import Head from 'next/head';
+import { useState } from 'react';
+type Breakpoint = 'desktop' | 'mobile' | 'tablet';
+
+const containerStyle = `
+  min-h-screen
+  flex
+  items-center
+  justify-center
+  bg-gray-800
+`;
+
+const calculatorStyle = `
+  bg-white
+  dark:bg-gray-700
+  p-8
+  rounded-md
+  shadow-md
+  w-full
+  max-w-md
+  space-y-4
+`;
+
+const infoStyle = `
+  text-gray-300
+`;
+
+interface Breakpoints {
+  [key: string]: {
+    baseFontSize: number;
+    width: number;
+  };
+}
+
+const breakpoints: Breakpoints = {
+  desktop: { baseFontSize: 0.5, width: 1920 },
+  mobile: { baseFontSize: 0.55, width: 480 },
+  tablet: { baseFontSize: 0.5, width: 1024 },
+};
+
 
 export default function Home() {
+  const [breakpoint, setBreakpoint] = useState<Breakpoint>('desktop');
+  const [pxValue, setPxValue] = useState<number | null>(null);
+  const [customWidth, setCustomWidth] = useState<number | null>(null);
+
+  const convertToRem = (px: number, breakpoint: Breakpoint): number => {
+    const rootFontSizeVw = breakpoints[breakpoint].baseFontSize;
+    const viewportWidth = customWidth || breakpoints[breakpoint].width;
+    const rootFontSizePx = (rootFontSizeVw / 100) * viewportWidth;
+    return px / rootFontSizePx;
+  };
+
+  const handleCustomWidthChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = parseFloat(e.target.value);
+    if (isNaN(value)) {
+      setCustomWidth(null);
+    } else {
+      setCustomWidth(value);
+    }
+  };
+
+  const handlePxInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = parseFloat(e.target.value);
+    if (isNaN(value)) {
+      setPxValue(null);
+    } else {
+      setPxValue(value);
+    }
+  };
+
+  const findMatchingBreakpoint = (width: number): Breakpoint => {
+    if (width <= breakpoints.mobile.width) {
+      return 'mobile';
+    } else if (width <= breakpoints.tablet.width) {
+      return 'tablet';
+    } else {
+      return 'desktop';
+    }
+  };
+
+  const activeBreakpoint = customWidth ? findMatchingBreakpoint(customWidth) : breakpoint;
+
+  const handleBreakpointChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setBreakpoint(e.target.value as Breakpoint);
+  };
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-24">
-      <div className="z-10 w-full max-w-5xl items-center justify-between font-mono text-sm lg:flex">
-        <p className="fixed left-0 top-0 flex w-full justify-center border-b border-gray-300 bg-gradient-to-b from-zinc-200 pb-6 pt-8 backdrop-blur-2xl dark:border-neutral-800 dark:bg-zinc-800/30 dark:from-inherit lg:static lg:w-auto  lg:rounded-xl lg:border lg:bg-gray-200 lg:p-4 lg:dark:bg-zinc-800/30">
-          Get started by editing&nbsp;
-          <code className="font-mono font-bold">pages/index.tsx</code>
-        </p>
-        <div className="fixed bottom-0 left-0 flex h-48 w-full items-end justify-center bg-gradient-to-t from-white via-white dark:from-black dark:via-black lg:static lg:h-auto lg:w-auto lg:bg-none">
-          <a
-            className="pointer-events-none flex place-items-center gap-2 p-8 lg:pointer-events-auto lg:p-0"
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{' '}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className="dark:invert"
-              width={100}
-              height={24}
-              priority
+    <div className={`${containerStyle} dark`}>
+      <Head>
+        <title>haha hoho</title>
+      </Head>
+      <div className={calculatorStyle}>
+        <div className={infoStyle}>
+          <p>Current Breakpoint: {activeBreakpoint}</p>
+          <p>Base Font Size: {breakpoints[activeBreakpoint].baseFontSize}vw</p>
+          <p>Width: {customWidth || breakpoints[breakpoint].width}px</p>
+        </div>
+        <div className="flex flex-row items-center justify-between">
+          <div>
+            <label className="block mb-2 text-white font-bold">Select</label>
+            <select
+              className="border p-2"
+              value={breakpoint}
+              onChange={handleBreakpointChange}
+            >
+              <option value="desktop">Desktop</option>
+              <option value="mobile">Mobile</option>
+              <option value="tablet">Tablet</option>
+            </select>
+          </div>
+          <div>
+            <label className="block mb-2 text-white font-bold">Width (Optinal)</label>
+            <input
+              className="border p-2"
+              type="text"
+              onChange={handleCustomWidthChange}
             />
-          </a>
+          </div>
+        </div>
+        <div>
+          <label className="block mb-2 text-white font-bold">Enter px value:</label>
+          <div className="flex flex-row justify-between items-center">
+            <input
+              className="border p-2"
+              type="text"
+              onChange={handlePxInputChange}
+            />
+            {pxValue !== null && (
+              <div className="font-bold text-lime-500">
+                <p>
+                  {convertToRem(pxValue, activeBreakpoint).toFixed(2)}rem
+                </p>
+              </div>
+            )}
+          </div>
         </div>
       </div>
+    </div>
 
-      <div className="relative flex place-items-center before:absolute before:h-[300px] before:w-[480px] before:-translate-x-1/2 before:rounded-full before:bg-gradient-radial before:from-white before:to-transparent before:blur-2xl before:content-[''] after:absolute after:-z-20 after:h-[180px] after:w-[240px] after:translate-x-1/3 after:bg-gradient-conic after:from-sky-200 after:via-blue-200 after:blur-2xl after:content-[''] before:dark:bg-gradient-to-br before:dark:from-transparent before:dark:to-blue-700/10 after:dark:from-sky-900 after:dark:via-[#0141ff]/40 before:lg:h-[360px]">
-        <Image
-          className="relative dark:drop-shadow-[0_0_0.3rem_#ffffff70] dark:invert"
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
-        />
-      </div>
-
-      <div className="mb-32 grid text-center lg:mb-0 lg:grid-cols-4 lg:text-left">
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`${inter.className} mb-3 text-2xl font-semibold`}>
-            Docs{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p
-            className={`${inter.className} m-0 max-w-[30ch] text-sm opacity-50`}
-          >
-            Find in-depth information about Next.js features and API.
-          </p>
-        </a>
-
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`${inter.className} mb-3 text-2xl font-semibold`}>
-            Learn{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p
-            className={`${inter.className} m-0 max-w-[30ch] text-sm opacity-50`}
-          >
-            Learn about Next.js in an interactive course with&nbsp;quizzes!
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`${inter.className} mb-3 text-2xl font-semibold`}>
-            Templates{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p
-            className={`${inter.className} m-0 max-w-[30ch] text-sm opacity-50`}
-          >
-            Discover and deploy boilerplate example Next.js&nbsp;projects.
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`${inter.className} mb-3 text-2xl font-semibold`}>
-            Deploy{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p
-            className={`${inter.className} m-0 max-w-[30ch] text-sm opacity-50`}
-          >
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
-      </div>
-    </main>
   )
 }
